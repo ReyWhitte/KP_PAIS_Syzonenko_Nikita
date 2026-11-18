@@ -1,0 +1,103 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage
+    xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+    xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+    x:Class="AgroGuid.Pages.HomePage"
+    Title="AgroGuid"
+    BackgroundColor="#F3F6F4">
+
+    <Grid RowDefinitions="68,*">
+
+        <!-- Верхня панель -->
+        <Grid Grid.Row="0"
+              BackgroundColor="#174B32"
+              Padding="22,0"
+              ColumnDefinitions="*,Auto,Auto,Auto"
+              ColumnSpacing="22">
+
+            <Label Text="🌱 AgroGuid"
+                   FontSize="27"
+                   FontAttributes="Bold"
+                   TextColor="White"
+                   VerticalOptions="Center"/>
+
+            <Button Grid.Column="1"
+                    Text="👤 Профіль"
+                    Clicked="OnProfileClicked"
+                    BackgroundColor="Transparent"
+                    TextColor="White"
+                    VerticalOptions="Center"/>
+
+            <Button Grid.Column="2"
+                    Text="⚙ Налаштування"
+                    Clicked="OnSettingsClicked"
+                    BackgroundColor="Transparent"
+                    TextColor="White"
+                    VerticalOptions="Center"/>
+
+            <Button Grid.Column="3"
+                    Text="? Довідка"
+                    Clicked="OnHelpClicked"
+                    BackgroundColor="Transparent"
+                    TextColor="White"
+                    VerticalOptions="Center"/>
+        </Grid>
+
+        <!-- Центральна область і меню зліва -->
+        <Grid Grid.Row="1"
+              ColumnDefinitions="245,*">
+
+            <!-- Вміст розділів -->
+            <ScrollView Grid.Column="1">
+                <VerticalStackLayout
+                    x:Name="ContentArea"
+                    Padding="28"
+                    Spacing="20"/>
+            </ScrollView>
+
+            <!-- Ліве меню -->
+            <Grid Grid.Column="0"
+                  BackgroundColor="#E5EDE4"
+                  RowDefinitions="*,Auto"
+                  Padding="12">
+
+                <ScrollView Grid.Row="0">
+                    <VerticalStackLayout Spacing="7">
+
+                        <Label Text="НАВІГАЦІЯ"
+                               FontSize="12"
+                               FontAttributes="Bold"
+                               TextColor="#718071"
+                               Margin="10,12,0,10"/>
+
+                        <Button Text="⌂   Головна"
+                                Style="{StaticResource MenuButtonStyle}"
+                                Clicked="OnHomeClicked"/>
+
+                        <Button Text="▧   Карта полів"
+                                Style="{StaticResource MenuButtonStyle}"
+                                Clicked="OnMapClicked"/>
+
+                        <Button Text="▣   Довідник"
+                                Style="{StaticResource MenuButtonStyle}"
+                                Clicked="OnReferenceClicked"/>
+
+                        <Button Text="▥   Історія"
+                                Style="{StaticResource MenuButtonStyle}"
+                                Clicked="OnHistoryClicked"/>
+
+                    </VerticalStackLayout>
+                </ScrollView>
+
+                <Button Grid.Row="1"
+                        Text="⇥   Вийти з акаунта"
+                        BackgroundColor="#D8E4D7"
+                        TextColor="#244D32"
+                        FontSize="14"
+                        HorizontalOptions="Fill"
+                        Clicked="OnLogoutClicked"
+                        Margin="0,12,0,4"/>
+            </Grid>
+        </Grid>
+    </Grid>
+</ContentPage>

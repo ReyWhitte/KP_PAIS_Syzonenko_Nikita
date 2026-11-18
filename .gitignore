@@ -1,0 +1,23 @@
+
+# Visual Studio
+.vs/
+*.user
+*.suo
+
+# Build files
+bin/
+obj/
+publish/
+
+# WebView2 temporary data
+*.WebView2/
+
+# Local SQLite databases
+*.db
+*.db3
+*.sqlite
+*.sqlite3
+
+# Temporary files
+*.tmp
+*.log

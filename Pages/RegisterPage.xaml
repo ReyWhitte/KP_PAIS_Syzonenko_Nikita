@@ -1,0 +1,136 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage
+    xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+    xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+    x:Class="AgroGuid.Pages.RegisterPage"
+    Title="Реєстрація"
+    BackgroundColor="#F2F6F0">
+
+    <Grid ColumnDefinitions="42*,58*">
+
+        <!-- Ліва частина із зображенням -->
+        <Grid Grid.Column="0">
+            <Image
+                Source="agroguid_auth.jpg"
+                Aspect="AspectFill"/>
+
+            <BoxView
+                BackgroundColor="#174B32"
+                Opacity="0.55"/>
+
+            <VerticalStackLayout
+                Padding="35"
+                Spacing="15"
+                VerticalOptions="End">
+
+                <Label
+                    Text="🌱 AgroGuid"
+                    FontSize="38"
+                    FontAttributes="Bold"
+                    TextColor="White"/>
+
+                <Label
+                    Text="Ваш надійний помічник у сучасному сільському господарстві"
+                    FontSize="20"
+                    TextColor="White"
+                    LineBreakMode="WordWrap"/>
+
+                <Label
+                    Text="Картографія полів • Довідник агронома • Облік робіт"
+                    FontSize="13"
+                    TextColor="#E3F0E3"/>
+            </VerticalStackLayout>
+        </Grid>
+
+        <!-- Права частина з формою -->
+        <ScrollView Grid.Column="1">
+            <VerticalStackLayout
+                Padding="35,30"
+                Spacing="12"
+                MaximumWidthRequest="480"
+                WidthRequest="480"
+                HorizontalOptions="Center"
+                VerticalOptions="Center">
+
+                <Label
+                    Text="Створення акаунта"
+                    FontSize="29"
+                    FontAttributes="Bold"
+                    TextColor="#243524"/>
+
+                <Label
+                    Text="Заповніть дані для початку роботи з AgroGuid"
+                    FontSize="14"
+                    TextColor="#657565"
+                    Margin="0,0,0,12"/>
+
+                <Label Text="Ім'я та прізвище" TextColor="#435343"/>
+                <Entry
+                    x:Name="NameEntry"
+                    Placeholder="Введіть ім'я та прізвище"
+                    BackgroundColor="White"
+                    TextColor="#243524"
+                    PlaceholderColor="#929B92"/>
+
+                <Label Text="Електронна пошта" TextColor="#435343"/>
+                <Entry
+                    x:Name="EmailEntry"
+                    Placeholder="name@example.com"
+                    Keyboard="Email"
+                    BackgroundColor="White"
+                    TextColor="#243524"
+                    PlaceholderColor="#929B92"/>
+
+                <Label Text="Логін" TextColor="#435343"/>
+                <Entry
+                    x:Name="LoginEntry"
+                    Placeholder="Придумайте логін"
+                    BackgroundColor="White"
+                    TextColor="#243524"
+                    PlaceholderColor="#929B92"/>
+
+                <Label Text="Пароль" TextColor="#435343"/>
+                <Entry
+                    x:Name="PasswordEntry"
+                    Placeholder="Мінімум 8 символів"
+                    IsPassword="True"
+                    BackgroundColor="White"
+                    TextColor="#243524"
+                    PlaceholderColor="#929B92"/>
+
+                <Label Text="Підтвердження пароля" TextColor="#435343"/>
+                <Entry
+                    x:Name="ConfirmPasswordEntry"
+                    Placeholder="Повторіть пароль"
+                    IsPassword="True"
+                    BackgroundColor="White"
+                    TextColor="#243524"
+                    PlaceholderColor="#929B92"/>
+
+                <Label
+                    x:Name="StatusLabel"
+                    Text=""
+                    TextColor="#B3261E"
+                    FontSize="13"/>
+
+                <Button
+                    x:Name="RegisterButton"
+                    Text="Зареєструватися"
+                    HeightRequest="50"
+                    BackgroundColor="#2E7D32"
+                    TextColor="White"
+                    FontAttributes="Bold"
+                    CornerRadius="8"
+                    Clicked="OnRegisterClicked"/>
+
+                <Button
+                    Text="Уже є акаунт? Увійти"
+                    BackgroundColor="Transparent"
+                    TextColor="#2E7D32"
+                    Clicked="OnLoginClicked"/>
+
+            </VerticalStackLayout>
+        </ScrollView>
+
+    </Grid>
+</ContentPage>

@@ -1,0 +1,474 @@
+
+<!DOCTYPE html>
+<html lang="uk">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>AgroGuid — Карта полів</title>
+
+    <link rel="stylesheet"
+          href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
+
+    <link rel="stylesheet"
+          href="https://unpkg.com/leaflet-draw@1.0.4/dist/leaflet.draw.css">
+
+    <style>
+        html, body, #map {
+            width: 100%;
+            height: 100%;
+            margin: 0;
+            padding: 0;
+            font-family: Arial, sans-serif;
+        }
+
+        .map-modes {
+            display: flex;
+            gap: 8px;
+            padding: 10px;
+            background: white;
+            border-radius: 10px;
+            box-shadow: 0 2px 8px #0002;
+        }
+
+            .map-modes button {
+                border: 1px solid #cbd8cc;
+                border-radius: 7px;
+                padding: 10px 14px;
+                cursor: pointer;
+                background: #edf3ed;
+                color: #174b32;
+                font-size: 14px;
+            }
+
+                .map-modes button.active {
+                    background: #176239;
+                    color: white;
+                }
+
+        .field-popup {
+            font-family: Arial, sans-serif;
+            color: #244d32;
+            min-width: 150px;
+        }
+
+            .field-popup strong {
+                font-size: 15px;
+            }
+
+            .field-popup p {
+                margin: 6px 0;
+            }
+
+        .map-error {
+            margin: 12px;
+            padding: 12px;
+            background: #fff4df;
+            color: #664515;
+            border-radius: 8px;
+        }
+    </style>
+</head>
+
+<body>
+
+    <div id="map"></div>
+
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+
+    <script src="https://unpkg.com/leaflet-draw@1.0.4/dist/leaflet.draw.js"></script>
+
+    <script>
+        // ВСТАВ СВІЙ НОВИЙ MAPTILER API KEY
+        const apiKey = "88xFtjPoBPAHyRMpGY9M";
+
+        // Створення карти
+        const map = L.map("map").setView([49.0, 31.4], 6);
+
+        // Звичайна карта
+        const streets = L.tileLayer(
+            "https://api.maptiler.com/maps/streets-v4/256/{z}/{x}/{y}.png?key=" + apiKey,
+            {
+                maxZoom: 20,
+                attribution: '&copy; MapTiler &copy; OpenStreetMap contributors'
+            }
+        );
+
+        // Супутникова карта
+        const satellite = L.tileLayer(
+            "https://api.maptiler.com/tiles/satellite-v2/{z}/{x}/{y}.jpg?key=" + apiKey,
+            {
+                minZoom: 0,
+                maxZoom: 20,
+                attribution: '&copy; MapTiler'
+            }
+        );
+
+        streets.addTo(map);
+
+        // Перемикання режимів карти
+        const ModeControl = L.Control.extend({
+            options: { position: "topleft" },
+
+            onAdd: function () {
+                const container = L.DomUtil.create("div", "map-modes");
+
+                container.innerHTML = `
+                    <button class="active" id="streetsBtn">Карта</button>
+                    <button id="satelliteBtn">Супутник</button>
+                `;
+
+                L.DomEvent.disableClickPropagation(container);
+
+                L.DomEvent.on(
+                    container.querySelector("#streetsBtn"),
+                    "click",
+                    function () {
+                        if (!map.hasLayer(streets)) {
+                            map.removeLayer(satellite);
+                            streets.addTo(map);
+                        }
+
+                        container.querySelector("#streetsBtn").classList.add("active");
+                        container.querySelector("#satelliteBtn").classList.remove("active");
+                    }
+                );
+
+                L.DomEvent.on(
+                    container.querySelector("#satelliteBtn"),
+                    "click",
+                    function () {
+                        if (!map.hasLayer(satellite)) {
+                            map.removeLayer(streets);
+                            satellite.addTo(map);
+                        }
+
+                        container.querySelector("#satelliteBtn").classList.add("active");
+                        container.querySelector("#streetsBtn").classList.remove("active");
+                    }
+                );
+
+                return container;
+            }
+        });
+
+        map.addControl(new ModeControl());
+
+        // Група земельних ділянок
+        const drawnItems = new L.FeatureGroup();
+
+        map.addLayer(drawnItems);
+
+        // Перевірка локального сховища
+
+        // Збереження земельних ділянок через .NET MAUI
+
+        function saveFields() {
+            // Отримуємо всі земельні ділянки
+            const data = drawnItems.toGeoJSON();
+            data.features = drawnItems.getLayers().map(function (layer) {
+                const feature = layer.toGeoJSON();
+                feature.properties = Object.assign({}, layer.feature?.properties || {});
+                return feature;
+            });
+
+            // Перетворюємо GeoJSON на текст
+            const json = JSON.stringify(data);
+
+            // Формуємо адресу для передавання в .NET MAUI
+            const url = "agroguid://save/?data=" +
+                encodeURIComponent(json);
+
+            // Створюємо тимчасове посилання
+            const link = document.createElement("a");
+
+            link.href = url;
+            link.style.display = "none";
+
+            document.body.appendChild(link);
+
+            // Викликаємо перехід, який має перехопити WebView
+            link.click();
+
+            // Видаляємо тимчасове посилання
+            link.remove();
+        }
+
+            
+        // Розрахунок площі у гектарах
+        function calculateArea(layer) {
+            const coordinates = layer.getLatLngs()[0];
+
+            let area = 0;
+
+            for (let i = 0; i < coordinates.length; i++) {
+                const p1 = coordinates[i];
+                const p2 = coordinates[(i + 1) % coordinates.length];
+
+                const x1 = p1.lng * Math.PI / 180;
+                const y1 = p1.lat * Math.PI / 180;
+                const x2 = p2.lng * Math.PI / 180;
+                const y2 = p2.lat * Math.PI / 180;
+
+                area += (x2 - x1) *
+                    (2 + Math.sin(y1) + Math.sin(y2));
+            }
+
+            area = Math.abs(area * 6378137 * 6378137 / 2);
+
+            return (area / 10000).toFixed(2);
+        }
+
+        // Інформація про поле
+        function bindFieldPopup(layer) {
+            const properties = layer.feature.properties;
+
+            const area = calculateArea(layer);
+
+            layer.bindPopup(`
+                <div class="field-popup">
+                    <strong>${escapeHtml(properties.name || "Без назви")}</strong>
+                    <p>Площа: ${area} га</p>
+                    <p>Культура: ${escapeHtml(properties.crop || "Не вказана")}</p>
+                </div>
+            `);
+
+            layer.on("click", function () {
+                window.selectedField = layer;
+            });
+        }
+
+        // Завантаження земельних ділянок із .NET MAUI
+        window.agroGuidLoadFields = function (fields) {
+
+            if (!fields || !fields.features) {
+                return;
+            }
+
+            // Очищаємо поточні шари
+            drawnItems.clearLayers();
+
+            // Відновлюємо ділянки з GeoJSON
+            const restoredFields = L.geoJSON(fields, {
+
+                style: {
+                    color: "#176239",
+                    weight: 3,
+                    fillColor: "#52A96B",
+                    fillOpacity: 0.35
+                },
+
+                onEachFeature: function (feature, layer) {
+
+                    layer.feature = feature;
+
+                    bindFieldPopup(layer);
+                }
+            });
+
+            restoredFields.eachLayer(function (layer) {
+                drawnItems.addLayer(layer);
+            });
+
+            console.log(
+                "AgroGuid: завантажено ділянок:",
+                drawnItems.getLayers().length
+            );
+        };
+
+
+        // Присвоєння ID, які повернув PostgreSQL після збереження
+        window.agroGuidApplyIds = function (assignments) {
+            const layers = drawnItems.getLayers();
+            assignments.forEach(function (item) {
+                const layer = layers[item.index];
+                if (!layer || !layer.feature) return;
+                layer.feature.properties = layer.feature.properties || {};
+                layer.feature.properties.id = item.id;
+            });
+        };
+
+        // Захист тексту в інформаційному вікні
+        function escapeHtml(value) {
+            return String(value).replace(/[&<>"']/g, function (char) {
+                return {
+                    "&": "&amp;",
+                    "<": "&lt;",
+                    ">": "&gt;",
+                    '"': "&quot;",
+                    "'": "&#39;"
+                }[char];
+            });
+        }
+
+        // Налаштування інструментів малювання
+        const drawControl = new L.Control.Draw({
+            position: "topright",
+
+            draw: {
+                polygon: {
+                    allowIntersection: false,
+                    showArea: true,
+                    shapeOptions: {
+                        color: "#176239",
+                        fillColor: "#52A96B",
+                        fillOpacity: 0.35
+                    }
+                },
+
+                rectangle: false,
+                circle: false,
+                circlemarker: false,
+                marker: false,
+                polyline: false
+            },
+
+            edit: {
+                featureGroup: drawnItems,
+                edit: true,
+                remove: true
+            }
+        });
+
+        map.addControl(drawControl);
+
+        // Створення нової ділянки
+        map.on(L.Draw.Event.CREATED, function (event) {
+            const layer = event.layer;
+
+            const name = prompt("Введіть назву поля:");
+
+            if (!name || !name.trim()) {
+                return;
+            }
+
+            const crop = prompt("Вкажіть культуру:");
+
+            layer.feature = {
+                type: "Feature",
+                properties: {
+                    id: null,
+                    name: name.trim(),
+                    crop: crop ? crop.trim() : ""
+                },
+                geometry: layer.toGeoJSON().geometry
+            };
+
+            drawnItems.addLayer(layer);
+
+            bindFieldPopup(layer);
+
+            saveFields();
+
+            layer.openPopup();
+        });
+
+        // Редагування ділянок
+        // Підтвердження редагування ділянок
+        map.on(L.Draw.Event.EDITED, function (event) {
+
+            event.layers.eachLayer(function (layer) {
+                bindFieldPopup(layer);
+            });
+
+            saveFields();
+
+            console.log(
+                "AgroGuid: редагування підтверджено."
+            );
+        });
+
+        // Видалення ділянок
+        // Підтвердження видалення ділянок
+        map.on(L.Draw.Event.DELETED, function (event) {
+
+            window.selectedField = null;
+
+            saveFields();
+
+            console.log(
+                "AgroGuid: видалення підтверджено."
+            );
+
+            console.log(
+                "Кількість ділянок після видалення:",
+                drawnItems.getLayers().length
+            );
+        });
+
+        // Помилки завантаження карти
+        let errorShown = false;
+
+        function showMapError() {
+            if (errorShown) return;
+
+            errorShown = true;
+
+            const message = document.createElement("div");
+            message.className = "map-error";
+
+            message.textContent =
+                "Не вдалося завантажити карту. Перевір API-ключ та інтернет.";
+
+            document.body.appendChild(message);
+        }
+
+        streets.on("tileerror", showMapError);
+        satellite.on("tileerror", showMapError);
+
+        // Пошук земельної ділянки за назвою
+        window.agroGuidSearchField = function (query) {
+
+            const searchText = String(query || "")
+                .trim()
+                .toLocaleLowerCase("uk");
+
+            if (!searchText) {
+                return "EMPTY";
+            }
+
+            let foundField = null;
+
+            drawnItems.eachLayer(function (layer) {
+
+                const properties =
+                    layer.feature?.properties || {};
+
+                const fieldName = properties.name || "";
+
+                if (
+                    fieldName.toLocaleLowerCase("uk")
+                        .includes(searchText)
+                    && !foundField
+                ) {
+                    foundField = layer;
+                }
+            });
+
+            if (!foundField) {
+                return "NOT_FOUND";
+            }
+
+            // Переміщення карти до знайденої ділянки
+            map.fitBounds(
+                foundField.getBounds(),
+                {
+                    padding: [30, 30],
+                    maxZoom: 17
+                }
+            );
+
+            // Відкриття інформації про ділянку
+            if (foundField.openPopup) {
+                foundField.openPopup();
+            }
+
+            window.selectedField = foundField;
+
+            return "FOUND";
+        };
+
+    </script>
+
+</body>
+</html>
